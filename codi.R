@@ -13,7 +13,7 @@ library(scales)
 load("Scientific Reports/Supplementary Material/dstDEF.RData")
 load("Scientific Reports/Supplementary Material/diff.timesDEF.RData")
 load("Scientific Reports/Supplementary Material/Quebec.RData")
-sunspots <- read.table("sunspots.txt")
+sunspots <- read.table("SN_d_tot_V2.0.txt")
 sunspots <- sunspots[!is.na(sunspots$TOTAL), ]
 sunspots$CDATE2 <- as.Date(paste0(sunspots$YEAR, "-", sunspots$MONTH, "-", sunspots$DAY))
 dst$CDATE2 <- as.Date(dst$CDATE)
