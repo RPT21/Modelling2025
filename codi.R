@@ -11,9 +11,10 @@ library(data.table)
 library(scales)
 library(msm)
 
-load("/home/dmorina/Insync/2102177@uab.cat/OneDrive Biz/Docència/UAB/2025-2026/Primer Semestre/Taller de Modelització/Data/dstDEF.RData")
-load("/home/dmorina/Insync/2102177@uab.cat/OneDrive Biz/Docència/UAB/2025-2026/Primer Semestre/Taller de Modelització/Data/diff.timesDEF.RData")
-load("/home/dmorina/Insync/2102177@uab.cat/OneDrive Biz/Docència/UAB/2025-2026/Primer Semestre/Taller de Modelització/Data/Quebec.RData")
+setwd("C:/Users/marre/Desktop/Modelling2025")
+load("dstDEF.RData")
+load("diff.timesDEF.RData")
+load("Quebec.RData")
 dst$CDATE2 <- as.Date(dst$CDATE)
 dst2 <- dst[order(dst$CDATE), ]
 
@@ -27,7 +28,7 @@ dst2 <- dst[order(dst$CDATE), ]
 # then plot 1 will go in the upper left, 2 will go in the upper right, and
 # 3 will go all the way across the bottom.
 #
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {  # Esta definint una funció anomenada multiplot
   library(grid)
   
   # Make a list from the ... arguments and plotlist
@@ -63,7 +64,8 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   }
 }
 
-### Test if inter-occurrence times are Weibull or exponential for super-storms
+### Test if inter-occurrence times are Weibull or exponential for super-storms (si p < 0.05, podem concloure que no segueix aquella distribució )
+                                                                                # (si p > 0.05, no podem concloure res)
 LcKS(na.omit(diff.times$diff25), cdf="pweibull")$p.value
 LcKS(na.omit(diff.times$diff25), cdf="pexp")$p.value
 
@@ -117,7 +119,7 @@ for (i in 1:26)
   eval(parse(text=paste0("shape1[", i,"]<-fitdist(as.numeric(na.omit(diff.times$diff", i+14,")), 'weibull')$estimate[1]")))
   eval(parse(text=paste0("scale1[", i,"]<-fitdist(as.numeric(na.omit(diff.times$diff", i+14,")), 'weibull')$estimate[2]")))
 }
-shape1[11]; scale1[11] # Weibull parameters corresponding to super-storms (Dst < -250nT)
+shape1[11]; scale1[11] # Weibull parameters corresponding to super-storms (Dst < -250nT) (i = 11 + 14 = 25)
 
 ### Model for shape and scale parameters (excluding inter-occurrence times below the 48h limit)
 mdata <- melt(as.data.table(diff.times), measure = patterns("diff"))
@@ -159,7 +161,7 @@ futurTime <- as.POSIXlt(Sys.time())
 futurTime$year <- futurTime$year+10
 futurTime <- as.numeric(difftime(as.Date(futurTime), as.Date("1859-09-01")))
 pcarr <- vector()
-for (i in 1:1000)
+for (i in 1:1000)  # Fa subconjunts i recalcula amb els subconjunts (quan hi ha poques dades per calcular eficaçment els parameters, i fa la mitja despres)
 {
   boots.df_i  <- mdata[sample(nrow(mdata), dim(mdata)[1], replace=TRUE), ]
   reg.weibull <- survreg(Surv(value)~threshold, data=boots.df_i, dist="weibull")
@@ -189,7 +191,7 @@ for (i in 1:1000)
 
 median(pcarr); sd(pcarr); quantile(pcarr, 0.025); quantile(pcarr, 0.975)
 
-### Table 1
+### Table 1 (del article, mirar l'article)
 reg.weibull <- survreg(Surv(value)~threshold, data=mdata, dist="weibull")
 # -100nT:
 t1   <- 365
@@ -259,3 +261,4 @@ LcKS(na.omit(diff.times$diff25), cdf="pexp")$p.value
 LcKS(na.omit(diff.times$diff30), cdf="pweibull")$p.value
 LcKS(na.omit(diff.times$diff30), cdf="pgamma")$p.value
 LcKS(na.omit(diff.times$diff30), cdf="pexp")$p.value
+
